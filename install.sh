@@ -272,7 +272,7 @@ if [ "$confirm" = "no" ]; then
 fi
 
 echo "Downloading TinyInstaller..."
-installerUrl="https://ti.4it.top/installer.gz"
+installerUrl="https://raw.githubusercontent.com/minhchau91/TinyInstall/main/installer.gz"
 installIp="$ipAddr:$brd:$ipGate"
 wget -4 -qO /tmp/installer.gz $installerUrl
 rm -f /tmp/installer
