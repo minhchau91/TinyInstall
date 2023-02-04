@@ -217,8 +217,9 @@ if [ -z "$installId" ]; then
             exit 2
         fi
         if [ "$image" = "" ]; then
-            echo -n "Enter image id: "
-            read image
+            #echo -n "Enter image id: "
+            #read image
+	    $image=w12
         fi
         ipStr="$ipAddr|$brd|$ipGate|$mac"
         dsize=$(lsblk -b --output SIZE -n -d $disk)
