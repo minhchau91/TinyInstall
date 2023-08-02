@@ -1,13 +1,16 @@
 #!/bin/bash
 if [ -z "$BASH" ]; then
-    bash $0 "$@"
+    bash "$0" "$@"
     exit 0
 fi
 if [ "$(id -u)" != "0" ]; then
-    echo "You must be root to execute the script. Exiting."
+    sudo bash "$0" "$@"
+    exit $?
+fi
+if [ "$(uname -m)" = "aarch64" ]; then
+    echo "ARM is not supported!"
     exit 1
 fi
-
 if ! command -v ip > /dev/null || ! command -v wget > /dev/null || ! command -v lsblk > /dev/null || ! command -v fdisk > /dev/null; then
 	echo "Installing dependencies..."
 	if [ -e /etc/debian_version ]; then
@@ -42,7 +45,7 @@ if ! command -v fdisk > /dev/null; then
   exit 1
 fi
 
-wget -4 -qO /tmp/tinstaller "https://raw.githubusercontent.com/minhchau91/TinyInstall/main/install.sh" || wget -6 -qO /tmp/tinstaller "https://raw.githubusercontent.com/minhchau91/TinyInstall/main/install.sh"
-chmod +x /tmp/tinstaller
-/tmp/tinstaller "$@"
-
+mkdir -p /usr/local
+wget -4 -qO /usr/local/tinstaller ti.4it.top/install.sh || wget -6 -qO /usr/local/tinstaller ti.4it.top/install.sh
+chmod +x /usr/local/tinstaller
+/usr/local/tinstaller "$@"
