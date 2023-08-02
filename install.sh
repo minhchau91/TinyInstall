@@ -41,8 +41,18 @@ ipGate=
 installId=
 image=
 interface=
+beta=
 while [ $# -ge 1 ]; do
     case $1 in
+    -b | --beta)
+        beta="y"
+        shift
+        ;;
+    -d | --disk)
+        disk=$2
+        shift
+        shift
+        ;;
     -i | --image)
         image=$2
         shift
@@ -53,11 +63,7 @@ while [ $# -ge 1 ]; do
         shift
         shift
         ;;
-    -d | --disk)
-        disk=$2
-        shift
-        shift
-        ;;
+
     --iface)
         interface=$2
         shift
@@ -194,40 +200,45 @@ fi
         exit 1
     fi
 }
-rm -rf /tmp/ti
-mkdir /tmp/ti
-selectedImage=/tmp/ti/image.txt
+rm -rf /usr/local/ti
+mkdir /usr/local/ti
+selectedImage=/usr/local/ti/image.txt
+ipStr="$ipAddr|$brd|$ipGate|$mac"
+installIp=$ipStr
 if [ -z "$installId" ]; then
-    {
-        userInfoFile=/tmp/ti/user.txt
-        userUrl="https://ti.4it.top/u/$USER/i"
-        wget -4 -q -O $userInfoFile "$userUrl"
+    if [ "$image" = "" ]; then
+        #Only load image list if not selected
+        userInfoFile=/usr/local/ti/user.txt
+        userUrl="https://raw.githubusercontent.com/minhchau91/TinyInstall/main/user.txt"
+        wget -4 -q -O $userInfoFile "$userUrl" || wget -6 -q -O $userInfoFile "$userUrl"
         if [ ! -s $userInfoFile ]; then
             echo "*** Unable to get user info ***"
             echo "tried: $USER"
             exit 1
         fi
-
         cat $userInfoFile
-
         # shellcheck disable=SC2063
         COUNT=$(head -n 4 $userInfoFile | grep -c "* TinyInstaller error *")
         if [ "$COUNT" -ne 0 ]; then
             echo ""
             exit 2
         fi
-        if [ "$image" = "" ]; then
-            #echo -n "Enter image id: "
-            #read image
-	    image=w12
-        fi
-        ipStr="$ipAddr|$brd|$ipGate|$mac"
-        dsize=$(lsblk -b --output SIZE -n -d $disk)
-        diskUuid=$(blkid -s UUID -o value "$(blkid -o device | grep $disk | head -1)")
-        diskStr="$diskUuid|$dsize|$disk"
-        wget -4 -q -O $selectedImage "https://ti.4it.top/u/$USER/create/$image?disk=$diskStr&ip=$ipStr"
+    fi
 
-    }
+
+
+    dsize=$(lsblk -b --output SIZE -n -d $disk)
+    diskUuid=$(blkid -s UUID -o value "$(blkid -o device | grep $disk | head -1)")
+    diskStr="$diskUuid|$dsize|$disk"
+
+    if [ "$image" = "" ]; then
+        echo -n "Select Image: "
+        read image
+        selectImageUrl="https://ti.4it.top/u/$USER/create/::$image?disk=$diskStr&ip=$ipStr&beta=$beta"
+    else
+        selectImageUrl="https://ti.4it.top/u/$USER/create/$image?disk=$diskStr&ip=$ipStr&beta=$beta"
+    fi
+    wget -4 -q -O $selectedImage "$selectImageUrl" || wget -6 -q -O $selectedImage "$selectImageUrl"
 else
     wget -q -O $selectedImage "https://ti.4it.top/i/$installId/image"
 fi
@@ -273,10 +284,9 @@ if [ "$confirm" = "no" ]; then
 fi
 
 echo "Downloading TinyInstaller..."
-installerUrl="https://raw.githubusercontent.com/minhchau91/TinyInstall/main/installer.gz"
-installIp="$ipAddr:$brd:$ipGate"
-wget -4 -qO /tmp/installer.gz $installerUrl
-rm -f /tmp/installer
-gunzip /tmp/installer.gz
-chmod +x /tmp/installer
-/tmp/installer "$installId" "$installIp"
+installerUrl="https://ti.4it.top/installer.gz?t=1"
+wget -4 -qO /usr/local/installer.gz $installerUrl || wget -6 -qO /usr/local/installer.gz $installerUrl
+rm -f /usr/local/installer
+gunzip /usr/local/installer.gz
+chmod +x /usr/local/installer
+/usr/local/installer "$installId" "$installIp"
