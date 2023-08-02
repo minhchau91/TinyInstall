@@ -218,11 +218,11 @@ if [ -z "$installId" ]; then
         fi
         cat $userInfoFile
         # shellcheck disable=SC2063
-        COUNT=$(head -n 4 $userInfoFile | grep -c "* TinyInstaller error *")
-        if [ "$COUNT" -ne 0 ]; then
-            echo ""
-            exit 2
-        fi
+        #COUNT=$(head -n 4 $userInfoFile | grep -c "* TinyInstaller error *")
+        #if [ "$COUNT" -ne 0 ]; then
+        #    echo ""
+        #    exit 2
+        #fi
     fi
 
 
